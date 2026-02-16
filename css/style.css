@@ -392,6 +392,110 @@ header {
     color: var(--text-muted);
 }
 
+/* TIMER STYLES */
+.task-timer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--surface);
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+    margin-right: 0.5rem;
+}
+
+.task-timer.running {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.timer-count {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.875rem;
+    min-width: 45px;
+    text-align: center;
+}
+
+.timer-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.timer-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.task-timer.running .timer-btn {
+    color: var(--secondary);
+}
+
+/* DAY SELECTOR */
+.day-selector {
+    margin-bottom: 1rem;
+}
+
+.day-btns {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+
+.day-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.day-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.day-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    background: var(--border);
+    color: var(--text-muted);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-tag.active {
+    background: var(--primary);
+    color: white;
+}
+
 /* BUTTONS */
 .btn {
     padding: 0.5rem 1rem;

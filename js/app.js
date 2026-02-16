@@ -59,6 +59,7 @@ let categories = [
 let userStats = { points: 0, completedCount: 0 };
 let charts = {};
 let templateTasks = [];
+let activeTimers = {};
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
@@ -167,6 +168,14 @@ function initMainApp() {
     document.getElementById('rewardForm')?.addEventListener('submit', addReward);
     document.getElementById('templateTaskForm')?.addEventListener('submit', addTemplateTask);
 
+    // Day buttons for templates
+    const dayBtns = document.querySelectorAll('.day-btn');
+    dayBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('active');
+        });
+    });
+
     // Buttons
     document.getElementById('applyTemplateBtn')?.addEventListener('click', applyTemplate);
     document.getElementById('addNewRewardBtn')?.addEventListener('click', () => document.getElementById('rewardModal').style.display = 'flex');
@@ -273,21 +282,37 @@ function renderCurrentTasks() {
     if (dayTasks.length === 0) {
         container.innerHTML = `<div class="no-tasks">All clear! Add some tasks to get started.</div>`;
     } else {
-        container.innerHTML = dayTasks.map(t => `
-            <div class="task-card ${t.completed ? 'completed' : ''}">
-                <input type="checkbox" class="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.id}')">
-                <div class="task-info">
-                    <div class="task-name">${t.name}</div>
-                    <div class="task-meta">
-                        <span class="tag" style="color: ${getCategoryColor(t.category)}">${t.category}</span>
-                        <span><i class="bi bi-star-fill" style="color: gold;"></i> ${t.points} pts</span>
-                    </div>
+        container.innerHTML = dayTasks.map(t => {
+            const timerState = activeTimers[t.id] || { remainingSeconds: (t.duration || 0) * 60, isRunning: false };
+            const minutes = Math.floor(timerState.remainingSeconds / 60);
+            const seconds = timerState.remainingSeconds % 60;
+            const timerDisplay = t.duration ? `
+                <div class="task-timer ${timerState.isRunning ? 'running' : ''}" id="timer-${t.id}">
+                    <span class="timer-count">${minutes}:${seconds.toString().padStart(2, '0')}</span>
+                    <button class="timer-btn" onclick="toggleTimer('${t.id}')">
+                        <i class="fas ${timerState.isRunning ? 'fa-pause' : 'fa-play'}"></i>
+                    </button>
                 </div>
-                <button onclick="deleteTask('${t.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        `).join('');
+            ` : '';
+
+            return `
+                <div class="task-card ${t.completed ? 'completed' : ''}">
+                    <input type="checkbox" class="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.id}')">
+                    <div class="task-info">
+                        <div class="task-name">${t.name}</div>
+                        <div class="task-meta">
+                            <span class="tag" style="color: ${getCategoryColor(t.category)}">${t.category}</span>
+                            <span><i class="bi bi-star-fill" style="color: gold;"></i> ${t.points} pts</span>
+                            ${t.duration ? `<span><i class="bi bi-clock"></i> ${t.duration} min</span>` : ''}
+                        </div>
+                    </div>
+                    ${timerDisplay}
+                    <button onclick="deleteTask('${t.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
     }
 }
 
@@ -372,20 +397,31 @@ function renderTemplateTasks() {
         return;
     }
 
-    container.innerHTML = templateTasks.map((t, idx) => `
-        <div class="task-card">
-            <div class="task-info">
-                <div class="task-name">${t.name}</div>
-                <div class="task-meta">
-                    <span class="tag" style="color: ${getCategoryColor(t.category)}">${t.category}</span>
-                    <span>${t.points} pts</span>
+    container.innerHTML = templateTasks.map((t, idx) => {
+        const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        const dayIndicators = days.map((day, i) => `
+            <span class="day-tag ${t.days.includes(i) ? 'active' : ''}">${day}</span>
+        `).join('');
+
+        return `
+            <div class="task-card">
+                <div class="task-info">
+                    <div class="task-name">${t.name}</div>
+                    <div class="task-meta">
+                        <span class="tag" style="color: ${getCategoryColor(t.category)}">${t.category}</span>
+                        <span>${t.points} pts</span>
+                        ${t.duration ? `<span><i class="bi bi-clock"></i> ${t.duration} min</span>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 4px; margin-top: 8px;">
+                        ${dayIndicators}
+                    </div>
                 </div>
+                <button onclick="removeTemplateTask(${idx})" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
-            <button onclick="removeTemplateTask(${idx})" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function updateStats() {
@@ -411,6 +447,7 @@ async function addTask(e) {
         category: document.getElementById('taskCategory').value,
         points: Number(document.getElementById('taskPoints').value) || 10,
         date: document.getElementById('taskDate').value || getLocalDateString(new Date()),
+        duration: Number(document.getElementById('taskDuration').value) || 0,
         completed: false,
         createdAt: serverTimestamp()
     };
@@ -426,12 +463,72 @@ window.toggleTask = async (id) => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
     task.completed = !task.completed;
+
+    // Stop timer if task is completed
+    if (task.completed && activeTimers[id] && activeTimers[id].isRunning) {
+        toggleTimer(id);
+    }
+
     userStats.points += task.completed ? Number(task.points) : -Number(task.points);
     await updateDoc(doc(db, "users", userId, "tasks", id), { completed: task.completed });
     saveUserStats();
     renderAll();
     if (task.completed) showToast(`Goal achieved! +${task.points} pts`, "success");
 };
+
+window.toggleTimer = (id) => {
+    const task = tasks.find(t => t.id === id);
+    if (!task || task.completed) return;
+
+    if (!activeTimers[id]) {
+        activeTimers[id] = {
+            remainingSeconds: (task.duration || 0) * 60,
+            isRunning: false,
+            intervalId: null
+        };
+    }
+
+    const state = activeTimers[id];
+
+    if (state.isRunning) {
+        // Pause
+        clearInterval(state.intervalId);
+        state.isRunning = false;
+        state.intervalId = null;
+    } else {
+        // Start
+        if (state.remainingSeconds <= 0) {
+            showToast("Timer already finished!", "info");
+            return;
+        }
+
+        state.isRunning = true;
+        state.intervalId = setInterval(() => {
+            state.remainingSeconds--;
+            if (state.remainingSeconds <= 0) {
+                clearInterval(state.intervalId);
+                state.isRunning = false;
+                state.intervalId = null;
+                showToast(`Time's up for: ${task.name}`, "info");
+            }
+            updateTimerUI(id);
+        }, 1000);
+    }
+    renderCurrentTasks();
+};
+
+function updateTimerUI(id) {
+    const timerEl = document.getElementById(`timer-${id}`);
+    if (!timerEl) return;
+
+    const state = activeTimers[id];
+    const countEl = timerEl.querySelector('.timer-count');
+    if (countEl) {
+        const minutes = Math.floor(state.remainingSeconds / 60);
+        const seconds = state.remainingSeconds % 60;
+        countEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+}
 
 window.deleteTask = async (id) => {
     if (!confirm('Delete this task?')) return;
@@ -449,7 +546,18 @@ function addTemplateTask(e) {
     const name = document.getElementById('templateTaskName').value;
     const category = document.getElementById('templateTaskCategory').value;
     const points = Number(document.getElementById('templateTaskPoints').value) || 10;
-    templateTasks.push({ name, category, points });
+    const duration = Number(document.getElementById('templateTaskDuration').value) || 0;
+
+    const selectedDays = [];
+    document.querySelectorAll('.day-btn.active').forEach(btn => {
+        selectedDays.push(Number(btn.getAttribute('data-day')));
+    });
+
+    templateTasks.push({ name, category, points, duration, days: selectedDays });
+
+    // Reset buttons
+    document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+
     renderTemplateTasks();
     e.target.reset();
     showToast("Added to template", "success");
@@ -482,29 +590,34 @@ async function applyTemplate() {
         status.style.color = "var(--primary)";
     }
 
-    const days = [];
-    let current = new Date(startDate);
-    // Force current date to be at midnight to avoid timezone issues when incrementing
-    current.setHours(0, 0, 0, 0);
-    const endTimestamp = endDate.getTime();
-
-    while (current.getTime() <= endTimestamp) {
-        days.push(getLocalDateString(current));
-        current.setDate(current.getDate() + 1);
-    }
-
     try {
-        for (const date of days) {
+        let current = new Date(startDate);
+        current.setHours(0, 0, 0, 0);
+        const endTimestamp = endDate.setHours(23, 59, 59, 999);
+
+        let createdCount = 0;
+        while (current.getTime() <= endTimestamp) {
+            const dateStr = getLocalDateString(current);
+            const dayOfWeek = current.getDay();
+
             for (const t of templateTasks) {
-                await addDoc(collection(db, "users", userId, "tasks"), {
-                    ...t,
-                    date,
-                    completed: false,
-                    createdAt: serverTimestamp()
-                });
+                if (t.days.length === 0 || t.days.includes(dayOfWeek)) {
+                    await addDoc(collection(db, "users", userId, "tasks"), {
+                        name: t.name,
+                        category: t.category,
+                        points: t.points,
+                        duration: t.duration,
+                        date: dateStr,
+                        completed: false,
+                        createdAt: serverTimestamp()
+                    });
+                    createdCount++;
+                }
             }
+            current.setDate(current.getDate() + 1);
         }
-        showToast(`Template applied! Created ${days.length * templateTasks.length} tasks.`, "success");
+
+        showToast(`Template applied! Created ${createdCount} tasks.`, "success");
         await fetchTasks();
         renderAll();
         setTimeout(() => {

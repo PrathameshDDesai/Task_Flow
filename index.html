@@ -191,7 +191,10 @@
                             </select>
                             <input type="number" id="taskPoints" class="auth-input" placeholder="Points" value="10" min="1">
                         </div>
-                        <input type="date" id="taskDate" class="auth-input">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <input type="date" id="taskDate" class="auth-input">
+                            <input type="number" id="taskDuration" class="auth-input" placeholder="Duration (min)" min="0">
+                        </div>
                         <button type="submit" class="btn btn-primary btn-wide" style="width: 100%; justify-content: center; padding: 0.75rem;">
                             <i class="bi bi-plus-lg"></i> Add Task
                         </button>
@@ -220,6 +223,19 @@
                                 <option value="">Category</option>
                             </select>
                             <input type="number" id="templateTaskPoints" class="auth-input" placeholder="Points" value="10">
+                        </div>
+                        <input type="number" id="templateTaskDuration" class="auth-input" placeholder="Duration (min)" min="0">
+                        <div class="day-selector">
+                            <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">Repeat on:</label>
+                            <div class="day-btns">
+                                <button type="button" class="day-btn" data-day="0">S</button>
+                                <button type="button" class="day-btn" data-day="1">M</button>
+                                <button type="button" class="day-btn" data-day="2">T</button>
+                                <button type="button" class="day-btn" data-day="3">W</button>
+                                <button type="button" class="day-btn" data-day="4">T</button>
+                                <button type="button" class="day-btn" data-day="5">F</button>
+                                <button type="button" class="day-btn" data-day="6">S</button>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">
                             <i class="bi bi-plus-lg"></i> Add to Template
