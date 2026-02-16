@@ -2,6 +2,15 @@
 
 A modularized version of the task tracking application with Firebase integration.
 
+## ✨ Key Features
+- **Firebase Auth**: Secure login and registration.
+- **Dynamic Tasks**: Create, complete, and track tasks with real-time updates.
+- **Task Timer**: Set a duration (minutes) for tasks and use a live countdown timer.
+- **Advanced Templates**: Create task templates for specific date ranges.
+- **Day-Specific Templates**: Specify which days of the week (e.g., Mon, Wed, Fri) a template task should repeat on.
+- **Rewards System**: Earn points for completing tasks and redeem them in the Rewards Shop.
+- **Analytics**: Track your progress with daily, weekly, and monthly completion charts.
+
 ## 📁 Project Structure
 - `index.html`: The main user interface.
 - `css/style.css`: All application styles.

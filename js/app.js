@@ -60,6 +60,7 @@ let userStats = { points: 0, completedCount: 0 };
 let charts = {};
 let templateTasks = [];
 let activeTimers = {};
+let isAppInitialized = false;
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
@@ -148,6 +149,9 @@ async function fetchTasks() {
 }
 
 function initMainApp() {
+    if (isAppInitialized) return;
+    isAppInitialized = true;
+
     // Nav Navigation
     const navItems = document.querySelectorAll('.nav-menu:not(.page-container .nav-menu) .nav-item');
     navItems.forEach((btn) => {
@@ -168,13 +172,13 @@ function initMainApp() {
     document.getElementById('rewardForm')?.addEventListener('submit', addReward);
     document.getElementById('templateTaskForm')?.addEventListener('submit', addTemplateTask);
 
-    // Day buttons for templates
-    const dayBtns = document.querySelectorAll('.day-btn');
-    dayBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.classList.toggle('active');
-        });
+    // Day buttons for templates (using delegation to be safer)
+    document.querySelector('.day-btns')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.day-btn');
+        if (btn) btn.classList.toggle('active');
     });
+
+    // Buttons
 
     // Buttons
     document.getElementById('applyTemplateBtn')?.addEventListener('click', applyTemplate);
@@ -286,7 +290,8 @@ function renderCurrentTasks() {
             const timerState = activeTimers[t.id] || { remainingSeconds: (t.duration || 0) * 60, isRunning: false };
             const minutes = Math.floor(timerState.remainingSeconds / 60);
             const seconds = timerState.remainingSeconds % 60;
-            const timerDisplay = t.duration ? `
+            const duration = Number(t.duration) || 0;
+            const timerDisplay = duration > 0 ? `
                 <div class="task-timer ${timerState.isRunning ? 'running' : ''}" id="timer-${t.id}">
                     <span class="timer-count">${minutes}:${seconds.toString().padStart(2, '0')}</span>
                     <button class="timer-btn" onclick="toggleTimer('${t.id}')">
@@ -303,7 +308,7 @@ function renderCurrentTasks() {
                         <div class="task-meta">
                             <span class="tag" style="color: ${getCategoryColor(t.category)}">${t.category}</span>
                             <span><i class="bi bi-star-fill" style="color: gold;"></i> ${t.points} pts</span>
-                            ${t.duration ? `<span><i class="bi bi-clock"></i> ${t.duration} min</span>` : ''}
+                            ${duration > 0 ? `<span><i class="bi bi-clock"></i> ${duration} min</span>` : ''}
                         </div>
                     </div>
                     ${timerDisplay}
@@ -330,6 +335,7 @@ function renderAllTasks() {
                     <div class="task-meta">
                         <span><i class="bi bi-calendar"></i> ${t.date}</span>
                         <span class="tag" style="color: ${getCategoryColor(t.category)}">${t.category}</span>
+                        ${t.duration ? `<span><i class="bi bi-clock"></i> ${t.duration} min</span>` : ''}
                     </div>
                 </div>
                 <button onclick="deleteTask('${t.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
