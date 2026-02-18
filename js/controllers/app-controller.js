@@ -13,6 +13,7 @@ class AppController {
         this.currentSelectedDate = new Date();
         this.currentSelectedDate.setHours(0, 0, 0, 0);
         this.activeTimers = {};
+        this.currentTemplateTasks = []; // Store tasks being added to the template
     }
 
     async init() {
@@ -125,6 +126,17 @@ class AppController {
 
         // Email Summary
         document.getElementById(AppConfig.elements.sendEmailSummaryBtnId)?.addEventListener('click', () => this.handleSendEmailSummary());
+
+        // --- Template Events ---
+        document.getElementById('templateTaskForm')?.addEventListener('submit', (e) => this.handleAddTemplateTask(e));
+        document.getElementById('applyTemplateBtn')?.addEventListener('click', () => this.handleApplyTemplate());
+
+        // Day selection buttons
+        document.querySelectorAll('.day-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.target.classList.toggle('active');
+            });
+        });
     }
 
     async handleAuth() {
@@ -372,6 +384,138 @@ class AppController {
             this.handleSendEmailSummary();
             showToast("📧 Auto-sending your daily summary!", "info");
         }
+    }
+
+    // --- TEMPLATE LOGIC ---
+
+    handleAddTemplateTask(e) {
+        e.preventDefault();
+
+        // Get selected days
+        const selectedDays = [];
+        document.querySelectorAll('.day-btn.active').forEach(btn => {
+            selectedDays.push(parseInt(btn.getAttribute('data-day')));
+        });
+
+        if (selectedDays.length === 0) {
+            showToast("Please select at least one day to repeat on.", "error");
+            return;
+        }
+
+        const task = {
+            id: Date.now().toString(),
+            name: document.getElementById('templateTaskName').value,
+            category: document.getElementById('templateTaskCategory').value,
+            points: Number(document.getElementById('templateTaskPoints').value) || 10,
+            duration: Number(document.getElementById('templateTaskDuration').value) || 0,
+            repeatDays: selectedDays
+        };
+
+        this.currentTemplateTasks.push(task);
+        this.renderTemplateTasks();
+
+        // Reset form but keep category to save time
+        const cat = document.getElementById('templateTaskCategory').value;
+        e.target.reset();
+        document.getElementById('templateTaskCategory').value = cat;
+        // Reset day buttons
+        document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+
+        showToast("Task added to template draft", "success");
+    }
+
+    renderTemplateTasks() {
+        const container = document.getElementById('templateTasksList');
+        if (!container) return;
+
+        if (this.currentTemplateTasks.length === 0) {
+            container.innerHTML = '<p class="text-muted">No tasks in template yet.</p>';
+            return;
+        }
+
+        const daysMap = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+        container.innerHTML = this.currentTemplateTasks.map((task, index) => `
+            <div class="task-card" style="margin-bottom: 0.5rem; border-left: 3px solid var(--primary);">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div style="font-weight: 500;">${task.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            ${task.points} pts • ${task.duration} min • 
+                            Repeat: ${task.repeatDays.map(d => daysMap[d]).join(', ')}
+                        </div>
+                    </div>
+                    <button class="btn-icon" onclick="appController.removeTemplateTask('${index}')" style="color: #ef4444;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    removeTemplateTask(index) {
+        this.currentTemplateTasks.splice(index, 1);
+        this.renderTemplateTasks();
+    }
+
+    async handleApplyTemplate() {
+        if (this.currentTemplateTasks.length === 0) {
+            showToast("Define at least one task first.", "error");
+            return;
+        }
+
+        const startStr = document.getElementById('templateStartDate').value;
+        const endStr = document.getElementById('templateEndDate').value;
+
+        if (!startStr || !endStr) {
+            showToast("Please select start and end dates.", "error");
+            return;
+        }
+
+        const startDate = new Date(startStr);
+        const endDate = new Date(endStr);
+
+        if (startDate > endDate) {
+            showToast("End date must be after start date.", "error");
+            return;
+        }
+
+        let addedCount = 0;
+        const statusEl = document.getElementById('templateStatus');
+        statusEl.textContent = "Generating tasks...";
+
+        // Loop through dates
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dayOfWeek = d.getDay(); // 0 = Sunday
+            const dateStr = taskView.getLocalDateString(new Date(d));
+
+            // Find tasks that match this day of week
+            const tasksForDay = this.currentTemplateTasks.filter(t => t.repeatDays.includes(dayOfWeek));
+
+            for (const t of tasksForDay) {
+                const newTask = {
+                    name: t.name,
+                    category: t.category,
+                    points: t.points,
+                    duration: t.duration,
+                    date: dateStr,
+                    completed: false
+                };
+                await taskModel.addTask(newTask);
+                addedCount++;
+            }
+        }
+
+        statusEl.textContent = "";
+        showToast(`Successfully created ${addedCount} tasks!`, "success");
+
+        // Clear draft
+        this.currentTemplateTasks = [];
+        this.renderTemplateTasks();
+
+        // Go to home to see result
+        this.switchPage('homePage');
+        this.refreshData();
     }
 }
 
