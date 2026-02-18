@@ -150,6 +150,17 @@
     </script>
 
     <!-- Scripts -->
+    <!-- Failsafe: Remove loader if JS hangs -->
+    <script>
+        setTimeout(() => {
+            const loader = document.getElementById('app-loading');
+            if (loader) {
+                console.warn('Forcing loader removal via failsafe');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }
+        }, 5000); // 5 seconds max wait
+    </script>
     <script type="module" src="js/app.js"></script>
 </body>
 </html>

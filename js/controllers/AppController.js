@@ -51,18 +51,20 @@ class AppController {
             // 6. Show home page by default
             this.switchPage('homePage');
 
-            // 6. Hide loading state
-            const loader = document.getElementById(AppConfig.elements.appLoadingId);
-            if (loader) {
-                loader.style.opacity = '0';
-                loader.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => loader.remove(), 300);
-            }
-
         } catch (error) {
             console.error("App initialization failed:", error);
-            // Error will be caught by global window.onerror in index.html
-            throw error;
+            showToast("Error loading app. Please refresh.", "error");
+        } finally {
+            // ALWAYS hide loading state, logic or connection error shouldn't block the UI
+            const loader = document.getElementById(AppConfig.elements.appLoadingId);
+            if (loader) {
+                // Force minimum visibility time of 500ms for smoother UX, then fade out
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => loader.remove(), 500);
+                }, 500);
+            }
         }
     }
 
