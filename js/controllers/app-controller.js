@@ -442,7 +442,7 @@ class AppController {
 
         container.innerHTML = this.currentTemplateTasks.map((task, index) => `
             <div class="task-card" style="margin-bottom: 0.5rem; border-left: 3px solid var(--primary);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <div style="font-weight: 500;">${task.name}</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">
@@ -480,8 +480,11 @@ class AppController {
             return;
         }
 
-        const startDate = new Date(startStr);
-        const endDate = new Date(endStr);
+        // Parse dates as local (not UTC) to avoid timezone offset issues
+        const [sy, sm, sd] = startStr.split('-').map(Number);
+        const [ey, em, ed] = endStr.split('-').map(Number);
+        const startDate = new Date(sy, sm - 1, sd);
+        const endDate = new Date(ey, em - 1, ed);
 
         if (startDate > endDate) {
             showToast("End date must be after start date.", "error");
@@ -495,7 +498,8 @@ class AppController {
         // Loop through dates
         for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
             const dayOfWeek = d.getDay(); // 0 = Sunday
-            const dateStr = taskView.getLocalDateString(new Date(d));
+            // Build date string directly from local date parts to avoid UTC shift
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
             // Find tasks that match this day of week
             const tasksForDay = this.currentTemplateTasks.filter(t => t.repeatDays.includes(dayOfWeek));
