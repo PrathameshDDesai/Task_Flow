@@ -1,4 +1,4 @@
-﻿import { appController } from "./controllers/app-controller.js?v=2";
+﻿import { appController } from "./controllers/app-controller.js?v=3";
 
 window.appController = appController;
 
