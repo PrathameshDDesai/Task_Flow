@@ -128,7 +128,7 @@ class AppController {
         document.getElementById(AppConfig.elements.sendEmailSummaryBtnId)?.addEventListener('click', () => this.handleSendEmailSummary());
 
         // --- Template Events ---
-        document.getElementById('templateTaskForm')?.addEventListener('submit', (e) => this.handleAddTemplateTask(e));
+        document.getElementById('addTemplateBtn')?.addEventListener('click', (e) => this.handleAddTemplateTask(e));
         document.getElementById('applyTemplateBtn')?.addEventListener('click', () => this.handleApplyTemplate());
 
         // Day selection buttons
