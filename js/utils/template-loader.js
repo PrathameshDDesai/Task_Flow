@@ -1,4 +1,4 @@
-import { AppConfig } from "../config/AppConfig.js";
+import { AppConfig } from "../config/app-config.js";
 
 export class TemplateLoader {
     static async load(path, containerId) {

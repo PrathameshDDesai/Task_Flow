@@ -5,8 +5,8 @@ import { authView } from "../views/AuthView.js";
 import { taskView } from "../views/TaskView.js";
 import { rewardView } from "../views/RewardView.js";
 import { analyticsView } from "../views/AnalyticsView.js";
-import { TemplateLoader } from "../utils/TemplateLoader.js";
-import { AppConfig } from "../config/AppConfig.js";
+import { TemplateLoader } from "../utils/template-loader.js";
+import { AppConfig } from "../config/app-config.js";
 
 class AppController {
     constructor() {
