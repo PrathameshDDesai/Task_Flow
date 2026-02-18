@@ -416,7 +416,12 @@ class AppController {
 
         // Reset form but keep category to save time
         const cat = document.getElementById('templateTaskCategory').value;
-        e.target.reset();
+
+        // Reset all inputs manually
+        document.getElementById('templateTaskName').value = '';
+        document.getElementById('templateTaskPoints').value = '10';
+        document.getElementById('templateTaskDuration').value = '';
+
         document.getElementById('templateTaskCategory').value = cat;
         // Reset day buttons
         document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
@@ -446,8 +451,10 @@ class AppController {
                         </div>
                     </div>
                     <button onclick="appController.removeTemplateTask(${index})" 
-                            style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
-                        <i class="bi bi-trash"></i>
+                            style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;"
+                            onmouseover="this.style.opacity='1'" 
+                            onmouseout="this.style.opacity='0.8'">
+                        <i class="bi bi-trash" style="font-size: 1.1rem;"></i>
                     </button>
                 </div>
             </div>
