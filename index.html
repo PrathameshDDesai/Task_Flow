@@ -19,45 +19,45 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
     <!-- Custom Styles -->
     <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        #app-loading {
+            position: fixed;
+            inset: 0;
+            background: var(--background, #f8fafc);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-family: 'Inter', sans-serif;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border, #e2e8f0);
+            border-top: 4px solid var(--primary, #6366f1);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <!-- Auth Screen -->
-    <div id="authBox">
-        <div class="auth-container">
-            <img src="login_illustration.png" alt="Productivity" style="width: 150px; margin-bottom: 1.5rem; border-radius: 1rem;">
-            <h2 id="authTitle" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="G" style="width: 24px;"> TaskFlow
-            </h2>
-            <p id="authSubtitle" style="color: var(--text-muted); margin-bottom: 2rem;">Your productivity, organized.</p>
-            
-            <input type="email" id="authEmail" class="auth-input" placeholder="Email address" autocomplete="email">
-            <input type="password" id="authPassword" class="auth-input" placeholder="Password" autocomplete="current-password">
-            
-            <button id="authActionBtn" class="auth-btn auth-btn-primary">
-                <span id="authActionText">Get Started</span>
-                <i class="fas fa-arrow-right"></i>
-            </button>
-            
-            <div style="display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0;">
-                <div style="flex: 1; height: 1px; background: var(--border);"></div>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">OR</span>
-                <div style="flex: 1; height: 1px; background: var(--border);"></div>
-            </div>
-            
-            <button id="googleAuthBtn" class="auth-btn auth-btn-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="G" style="width: 18px;">
-                Continue with Google
-            </button>
-            
-            <div id="authToggle" class="auth-toggle">
-                New here? Create an account
-            </div>
-            
-            <div id="authMessage" class="auth-message" style="display: none;"></div>
-        </div>
+    <!-- Global Loading State -->
+    <div id="app-loading">
+        <div class="spinner"></div>
+        <div style="color: var(--text-muted); font-size: 0.875rem;">Initializing TaskFlow...</div>
     </div>
+
+    <!-- Page Containers -->
+    <div id="authContainer"></div>
 
     <!-- App Shell -->
     <div id="mainApp">
@@ -91,13 +91,13 @@
                     <button class="nav-item active" id="homeBtn">
                         <i class="bi bi-house-door"></i> Home
                     </button>
-                    <button class="nav-item" id="addTaskBtn">
+                    <button class="nav-item" id="tasksBtn">
                         <i class="bi bi-plus-circle"></i> Tasks
                     </button>
                     <button class="nav-item" id="rewardsBtn">
                         <i class="bi bi-gift"></i> Rewards
                     </button>
-                    <button class="nav-item" id="analyticsBtn">
+                    <button class="nav-item" id="statsBtn">
                         <i class="bi bi-pie-chart"></i> Stats
                     </button>
                     <button class="nav-item" id="templatesBtn">
@@ -111,256 +111,43 @@
         </header>
 
         <main class="container">
-            <!-- Home Page -->
-            <div id="homePage" class="page-container active">
-                <div class="panel-header">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <button id="prevDateBtn" class="nav-item" style="padding: 0.5rem; background: var(--background); border-radius: 50%; min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <div style="text-align: center;">
-                            <h2 id="currentDateDisplay">Today</h2>
-                            <p id="agendaSubtitle" style="color: var(--text-muted);">Here's your agenda for today</p>
-                        </div>
-                        <button id="nextDateBtn" class="nav-item" style="padding: 0.5rem; background: var(--background); border-radius: 50%; min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <button id="todayBtn" class="btn btn-secondary btn-small" style="margin-left: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.75rem;">
-                            Today
-                        </button>
-                    </div>
-                    <div style="text-align: right;">
-                        <span id="totalPoints" style="font-size: 2rem; font-weight: 700; color: var(--primary);">0</span>
-                        <p style="font-size: 0.75rem; color: var(--text-muted);">Points Earned</p>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <h3>Today's Tasks</h3>
-                        <div id="completionRate" style="font-size: 0.875rem; color: var(--accent); font-weight: 600;">0% complete</div>
-                    </div>
-                    <div id="tasksContainer" class="task-list">
-                        <div class="no-tasks">All clear! Add some tasks to get started.</div>
-                    </div>
-                </div>
-                
-                <div class="dashboard-grid">
-                    <div class="stat-pill">
-                        <div class="stat-icon primary">
-                            <i class="bi bi-check2-circle"></i>
-                        </div>
-                        <div>
-                            <span id="homeCompleted" style="font-size: 1.25rem; font-weight: 700;">0</span>
-                            <p style="font-size: 0.75rem; color: var(--text-muted);">Tasks Done Today</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-pill">
-                        <div class="stat-icon accent">
-                            <i class="bi bi-lightning-charge"></i>
-                        </div>
-                        <div>
-                            <span id="homePoints" style="font-size: 1.25rem; font-weight: 700;">0</span>
-                            <p style="font-size: 0.75rem; color: var(--text-muted);">Today's Points</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-pill">
-                        <div class="stat-icon secondary">
-                            <i class="bi bi-gem"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <span id="homeAvailablePoints" style="font-size: 1.25rem; font-weight: 700;">0</span>
-                            <p style="font-size: 0.75rem; color: var(--text-muted);">Balance Points</p>
-                        </div>
-                        <button class="btn btn-accent btn-small" id="viewRewardsBtnQuick" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">Shop</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tasks Page -->
-            <div id="addTaskPage" class="page-container">
-                <div class="panel">
-                    <h3>Add New Task</h3>
-                    <form id="taskForm" style="margin-top: 1.5rem;">
-                        <input type="text" id="taskName" class="auth-input" placeholder="What needs to be done?" required>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <select id="taskCategory" class="auth-input" required>
-                                <option value="">Category</option>
-                            </select>
-                            <input type="number" id="taskPoints" class="auth-input" placeholder="Points" value="10" min="1">
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <input type="date" id="taskDate" class="auth-input">
-                            <input type="number" id="taskDuration" class="auth-input" placeholder="Duration (min)" min="0">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-wide" style="width: 100%; justify-content: center; padding: 0.75rem;">
-                            <i class="bi bi-plus-lg"></i> Add Task
-                        </button>
-                    </form>
-                </div>
-                <div class="panel">
-                    <h3>All Planned Tasks</h3>
-                    <div id="allTasksContainer" class="task-list" style="margin-top: 1.5rem;"></div>
-                </div>
-            </div>
-
-            <!-- Templates Page -->
-            <div id="templatesPage" class="page-container">
-                <div class="panel-header">
-                    <div>
-                        <h2>Task Templates</h2>
-                        <p style="color: var(--text-muted);">Set tasks for a month or specific period</p>
-                    </div>
-                </div>
-                <div class="panel">
-                    <h3>1. Define Template Tasks</h3>
-                    <form id="templateTaskForm" style="margin-top: 1.5rem;">
-                        <input type="text" id="templateTaskName" class="auth-input" placeholder="Template Task Name" required>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <select id="templateTaskCategory" class="auth-input" required>
-                                <option value="">Category</option>
-                            </select>
-                            <input type="number" id="templateTaskPoints" class="auth-input" placeholder="Points" value="10">
-                        </div>
-                        <input type="number" id="templateTaskDuration" class="auth-input" placeholder="Duration (min)" min="0">
-                        <div class="day-selector">
-                            <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">Repeat on:</label>
-                            <div class="day-btns">
-                                <button type="button" class="day-btn" data-day="0">S</button>
-                                <button type="button" class="day-btn" data-day="1">M</button>
-                                <button type="button" class="day-btn" data-day="2">T</button>
-                                <button type="button" class="day-btn" data-day="3">W</button>
-                                <button type="button" class="day-btn" data-day="4">T</button>
-                                <button type="button" class="day-btn" data-day="5">F</button>
-                                <button type="button" class="day-btn" data-day="6">S</button>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">
-                            <i class="bi bi-plus-lg"></i> Add to Template
-                        </button>
-                    </form>
-                    <div id="templateTasksList" class="task-list" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;"></div>
-                </div>
-                <div class="panel">
-                    <h3>2. Apply to Period</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
-                        <div>
-                            <label style="font-size: 0.875rem; color: var(--text-muted);">Start Date</label>
-                            <input type="date" id="templateStartDate" class="auth-input">
-                        </div>
-                        <div>
-                            <label style="font-size: 0.875rem; color: var(--text-muted);">End Date</label>
-                            <input type="date" id="templateEndDate" class="auth-input">
-                        </div>
-                    </div>
-                    <button id="applyTemplateBtn" class="btn btn-accent btn-wide" style="width: 100%; justify-content: center; padding: 1rem; margin-top: 1rem;">
-                        <i class="bi bi-magic"></i> Generate Tasks for this Period
-                    </button>
-                    <p id="templateStatus" style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 1rem;"></p>
-                </div>
-            </div>
-
-            <!-- Rewards Page -->
-            <div id="rewardsPage" class="page-container">
-                <div class="panel-header">
-                    <h2>Rewards Shop</h2>
-                </div>
-                <div class="panel" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div><p style="opacity: 0.9;">Available Balance</p><h3 style="font-size: 2rem; color:white;" id="rewardsPagePoints">0</h3></div>
-                        <button class="btn glass" id="addNewRewardBtn">New Reward</button>
-                    </div>
-                </div>
-                <div id="rewardsList" class="dashboard-grid" style="margin-top: 2rem;"></div>
-            </div>
-
-            <!-- Analytics Page -->
-            <div id="analyticsPage" class="page-container">
-                <div class="panel-header"><h2>Progress Stats</h2></div>
-                <div class="panel">
-                    <div class="nav-menu" style="margin-top: 0; margin-bottom: 1.5rem;">
-                        <button class="nav-item active tab-btn" data-tab="daily">Daily</button>
-                        <button class="nav-item tab-btn" data-tab="weekly">Weekly</button>
-                        <button class="nav-item tab-btn" data-tab="monthly">Monthly</button>
-                        <button class="nav-item tab-btn" data-tab="rewards">Redemptions</button>
-                    </div>
-                    <div id="dailyTab" class="analytics-content active">
-                        <div style="height: 300px;"><canvas id="dailyChart"></canvas></div>
-                    </div>
-                    <div id="weeklyTab" class="analytics-content" style="display: none;">
-                        <div style="height: 300px;"><canvas id="weeklyChart"></canvas></div>
-                    </div>
-                    <div id="monthlyTab" class="analytics-content" style="display: none;">
-                        <div style="height: 300px;"><canvas id="monthlyChart"></canvas></div>
-                    </div>
-                    <div id="rewardsTab" class="analytics-content" style="display: none;">
-                        <div style="height: 350px; display: flex; justify-content: center;">
-                            <canvas id="rewardsPieChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Page -->
-            <div id="settingsPage" class="page-container">
-                <div class="panel">
-                    <h3>Categories</h3>
-                    <form id="addCategoryForm" style="display: flex; gap: 1rem; margin-top: 1rem;">
-                        <input type="text" id="newCategoryName" class="auth-input" placeholder="Name" required style="margin:0;">
-                        <input type="color" id="newCategoryColor" value="#6366f1" style="height: 46px;">
-                        <button type="submit" class="btn btn-primary">Add</button>
-                    </form>
-                    <div id="categoriesList" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem;"></div>
-                </div>
-                <div class="panel">
-                    <h3>Backup</h3>
-                    <button class="btn btn-secondary" id="exportDataBtn">Export JSON</button>
-                    <button class="btn btn-secondary" id="importDataBtn">Import JSON</button>
-                    <input type="file" id="importDataInput" style="display: none;">
-                </div>
-
-                <div class="panel" style="border: 1px solid #fee2e2; background: rgba(239, 68, 68, 0.02);">
-                    <h3 style="color: #ef4444;">Danger Zone</h3>
-                    <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">Deleting your data is permanent. This wipes all tasks, points, and custom categories.</p>
-                    <button class="btn" style="background: #ef4444; color: white; width: 100%; justify-content: center;" id="resetAllDataBtn">
-                        <i class="bi bi-trash3"></i> Delete All My Data
-                    </button>
-                </div>
-            </div>
+            <div id="homePage" class="page-container active"></div>
+            <div id="tasksPage" class="page-container"></div>
+            <div id="templatesPage" class="page-container"></div>
+            <div id="rewardsPage" class="page-container"></div>
+            <div id="analyticsPage" class="page-container"></div>
+            <div id="statsPage" class="page-container"></div>
+            <div id="settingsPage" class="page-container"></div>
         </main>
     </div>
 
-    <!-- Reward Modal -->
-    <div id="rewardModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-        <div class="auth-container" style="max-width: 500px; text-align: left;">
-            <h3 id="rewardModalTitle">New Reward</h3>
-            <form id="rewardForm" style="margin-top: 1.5rem;">
-                <input type="text" id="rewardName" class="auth-input" placeholder="Reward Name" required>
-                <textarea id="rewardDescription" class="auth-input" placeholder="What is this reward?"></textarea>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <input type="number" id="rewardPoints" class="auth-input" placeholder="Points Cost" required>
-                    <select id="rewardIcon" class="auth-input">
-                        <option value="fas fa-gift">Icon: Gift</option>
-                        <option value="fas fa-coffee">Icon: Coffee</option>
-                        <option value="fas fa-pizza-slice">Icon: Food</option>
-                        <option value="fas fa-gamepad">Icon: Gaming</option>
-                        <option value="fas fa-film">Icon: Movie</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Reward</button>
-                    <button type="button" class="btn btn-secondary" id="closeRewardModal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-        </main>
-    </div>
+    <!-- Modals Container -->
+    <div id="modalContainer"></div>
 
     <!-- Toast Notifications -->
     <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Error Reporter -->
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            const container = document.getElementById('authContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div style="padding: 2rem; color: #ef4444; font-family: sans-serif; text-align: center;">
+                        <h2 style="margin-bottom: 1rem;">⚠️ Application Error</h2>
+                        <p style="margin-bottom: 1rem;">${msg}</p>
+                        <div style="font-size: 0.75rem; color: #666; text-align: left; background: #fee2e2; padding: 1rem; border-radius: 8px; max-width: 500px; margin: 0 auto; overflow: auto;">
+                            File: ${url}<br>Line: ${line}, Column: ${col}<br>${error && error.stack ? '<br>' + error.stack : ''}
+                        </div>
+                        <button onclick="location.reload()" style="margin-top: 2rem; padding: 0.75rem 1.5rem; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer;">Refresh Page</button>
+                    </div>
+                `;
+                container.style.display = 'flex';
+                container.style.background = 'white';
+            }
+            return false;
+        };
+    </script>
 
     <!-- Scripts -->
     <script type="module" src="js/app.js"></script>

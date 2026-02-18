@@ -1,0 +1,23 @@
+<div class="panel-header"><h2>Progress Stats</h2></div>
+<div class="panel">
+    <div class="nav-menu" style="margin-top: 0; margin-bottom: 1.5rem;">
+        <button class="nav-item active tab-btn" data-tab="daily">Daily</button>
+        <button class="nav-item tab-btn" data-tab="weekly">Weekly</button>
+        <button class="nav-item tab-btn" data-tab="monthly">Monthly</button>
+        <button class="nav-item tab-btn" data-tab="rewards">Redemptions</button>
+    </div>
+    <div id="dailyTab" class="analytics-content active">
+        <div style="height: 300px;"><canvas id="dailyChart"></canvas></div>
+    </div>
+    <div id="weeklyTab" class="analytics-content" style="display: none;">
+        <div style="height: 300px;"><canvas id="weeklyChart"></canvas></div>
+    </div>
+    <div id="monthlyTab" class="analytics-content" style="display: none;">
+        <div style="height: 300px;"><canvas id="monthlyChart"></canvas></div>
+    </div>
+    <div id="rewardsTab" class="analytics-content" style="display: none;">
+        <div style="height: 350px; display: flex; justify-content: center;">
+            <canvas id="rewardsPieChart"></canvas>
+        </div>
+    </div>
+</div>

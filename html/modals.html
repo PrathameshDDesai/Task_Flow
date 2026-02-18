@@ -1,0 +1,23 @@
+<div id="rewardModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3 id="rewardModalTitle">New Reward</h3>
+        <form id="rewardForm" style="margin-top: 1.5rem;">
+            <input type="text" id="rewardName" class="auth-input" placeholder="Reward Name" required>
+            <textarea id="rewardDescription" class="auth-input" placeholder="What is this reward?"></textarea>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <input type="number" id="rewardPoints" class="auth-input" placeholder="Points Cost" required>
+                <select id="rewardIcon" class="auth-input">
+                    <option value="fas fa-gift">Icon: Gift</option>
+                    <option value="fas fa-coffee">Icon: Coffee</option>
+                    <option value="fas fa-pizza-slice">Icon: Food</option>
+                    <option value="fas fa-gamepad">Icon: Gaming</option>
+                    <option value="fas fa-film">Icon: Movie</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save Reward</button>
+                <button type="button" class="btn btn-secondary" id="closeRewardModal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

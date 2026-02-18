@@ -1,0 +1,31 @@
+<div class="panel">
+    <h3>Categories</h3>
+    <form id="addCategoryForm" style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <input type="text" id="newCategoryName" class="auth-input" placeholder="Name" required style="margin:0;">
+        <input type="color" id="newCategoryColor" value="#6366f1" style="height: 46px;">
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+    <div id="categoriesList" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem;"></div>
+</div>
+<div class="panel">
+    <h3>Email Reminders</h3>
+    <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">Send a summary of today's progress to your email.</p>
+    <button class="btn btn-primary" id="sendEmailSummaryBtn">
+        <i class="bi bi-envelope"></i> Send Daily Summary
+    </button>
+</div>
+
+<div class="panel">
+    <h3>Backup</h3>
+    <button class="btn btn-secondary" id="exportDataBtn">Export JSON</button>
+    <button class="btn btn-secondary" id="importDataBtn">Import JSON</button>
+    <input type="file" id="importDataInput" style="display: none;">
+</div>
+
+<div class="panel" style="border: 1px solid #fee2e2; background: rgba(239, 68, 68, 0.02);">
+    <h3 style="color: #ef4444;">Danger Zone</h3>
+    <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">Deleting your data is permanent. This wipes all tasks, points, and custom categories.</p>
+    <button class="btn" style="background: #ef4444; color: white; width: 100%; justify-content: center;" id="resetAllDataBtn">
+        <i class="bi bi-trash3"></i> Delete All My Data
+    </button>
+</div>

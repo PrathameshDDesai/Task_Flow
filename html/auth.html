@@ -1,0 +1,34 @@
+<div id="authBox">
+    <div class="auth-container">
+        <img src="login_illustration.png" alt="Productivity" style="width: 150px; margin-bottom: 1.5rem; border-radius: 1rem;">
+        <h2 id="authTitle" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="G" style="width: 24px;"> TaskFlow
+        </h2>
+        <p id="authSubtitle" style="color: var(--text-muted); margin-bottom: 2rem;">Your productivity, organized.</p>
+        
+        <input type="email" id="authEmail" class="auth-input" placeholder="Email address" autocomplete="email">
+        <input type="password" id="authPassword" class="auth-input" placeholder="Password" autocomplete="current-password">
+        
+        <button id="authActionBtn" class="auth-btn auth-btn-primary">
+            <span id="authActionText">Get Started</span>
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        
+        <div style="display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0;">
+            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">OR</span>
+            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+        </div>
+        
+        <button id="googleAuthBtn" class="auth-btn auth-btn-google">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" alt="G" style="width: 18px;">
+            Continue with Google
+        </button>
+        
+        <div id="authToggle" class="auth-toggle">
+            New here? Create an account
+        </div>
+        
+        <div id="authMessage" class="auth-message" style="display: none;"></div>
+    </div>
+</div>

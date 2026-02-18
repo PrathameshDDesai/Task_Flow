@@ -1,0 +1,64 @@
+<div class="panel-header">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <button id="prevDateBtn" class="nav-item" style="padding: 0.5rem; background: var(--background); border-radius: 50%; min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div style="text-align: center;">
+            <h2 id="currentDateDisplay">Today</h2>
+            <p id="agendaSubtitle" style="color: var(--text-muted);">Here's your agenda for today</p>
+        </div>
+        <button id="nextDateBtn" class="nav-item" style="padding: 0.5rem; background: var(--background); border-radius: 50%; min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <button id="todayBtn" class="btn btn-secondary btn-small" style="margin-left: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.75rem;">
+            Today
+        </button>
+    </div>
+    <div style="text-align: right;">
+        <span id="totalPoints" style="font-size: 2rem; font-weight: 700; color: var(--primary);">0</span>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Points Earned</p>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <h3>Today's Tasks</h3>
+        <div id="completionRate" style="font-size: 0.875rem; color: var(--accent); font-weight: 600;">0% complete</div>
+    </div>
+    <div id="tasksContainer" class="task-list">
+        <div class="no-tasks">All clear! Add some tasks to get started.</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="stat-pill">
+        <div class="stat-icon primary">
+            <i class="bi bi-check2-circle"></i>
+        </div>
+        <div>
+            <span id="homeCompleted" style="font-size: 1.25rem; font-weight: 700;">0</span>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Tasks Done Today</p>
+        </div>
+    </div>
+
+    <div class="stat-pill">
+        <div class="stat-icon accent">
+            <i class="bi bi-lightning-charge"></i>
+        </div>
+        <div>
+            <span id="homePoints" style="font-size: 1.25rem; font-weight: 700;">0</span>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Today's Points</p>
+        </div>
+    </div>
+
+    <div class="stat-pill">
+        <div class="stat-icon secondary">
+            <i class="bi bi-gem"></i>
+        </div>
+        <div style="flex: 1;">
+            <span id="homeAvailablePoints" style="font-size: 1.25rem; font-weight: 700;">0</span>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Balance Points</p>
+        </div>
+        <button class="btn btn-accent btn-small" id="viewRewardsBtnQuick" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">Shop</button>
+    </div>
+</div>
