@@ -445,8 +445,9 @@ class AppController {
                             Repeat: ${task.repeatDays.map(d => daysMap[d]).join(', ')}
                         </div>
                     </div>
-                    <button class="btn-icon" onclick="appController.removeTemplateTask('${index}')" style="color: #ef4444;">
-                        <i class="bi bi-x-lg"></i>
+                    <button onclick="appController.removeTemplateTask(${index})" 
+                            style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+                        <i class="bi bi-trash"></i>
                     </button>
                 </div>
             </div>
