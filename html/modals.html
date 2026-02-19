@@ -21,3 +21,63 @@
         </form>
     </div>
 </div>
+
+<div id="addTaskModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Add New Task</h3>
+        <form id="taskForm" style="margin-top: 1.5rem;">
+            <input type="text" id="taskName" class="auth-input" placeholder="What needs to be done?" required>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                
+                <!-- Category Selection / Creation Cell -->
+                <div style="position: relative;">
+                    <!-- State 1: Select Existing -->
+                    <div id="categorySelectGroup" style="display: flex; gap: 0.5rem;">
+                        <select id="taskCategory" class="auth-input" required style="flex: 1; margin: 0;">
+                            <option value="">Category</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary" onclick="appController.toggleQuickCategoryMode(true)" title="New Category" style="padding: 0 0.75rem;">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- State 2: Create New -->
+                    <div id="categoryCreateGroup" style="display: none; gap: 0.5rem; width: 100%;">
+                        <input type="text" id="quickCategoryName" class="auth-input" placeholder="New Cat..." style="margin:0; flex:1; min-width: 0;">
+                        <input type="color" id="quickCategoryColor" value="#6366f1" style="height: 42px; width: 30px; padding: 0; border: none; background: none; cursor: pointer;">
+                        <button type="button" class="btn btn-primary" onclick="appController.handleQuickAddCategory()" style="padding: 0 0.5rem;" title="Save">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="appController.toggleQuickCategoryMode(false)" style="padding: 0 0.5rem;" title="Cancel">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <input type="number" id="taskPoints" class="auth-input" placeholder="Points" value="10" min="1" style="margin: 0;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <input type="date" id="taskDate" class="auth-input">
+                <input type="number" id="taskDuration" class="auth-input" placeholder="Duration (min)" min="0">
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Add Task</button>
+                <button type="button" class="btn btn-secondary" id="closeTaskModal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="confirmModal" class="modal" style="display: none; align-items: center; justify-content: center; z-index: 2000;">
+    <div class="modal-content" style="max-width: 400px; text-align: center; padding: 2rem;">
+        <div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem; opacity: 0.9;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <h3 id="confirmTitle" style="margin-bottom: 0.75rem; font-size: 1.25rem;">Are you sure?</h3>
+        <p id="confirmMessage" style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">This action cannot be undone.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button id="confirmBtnCancel" class="btn btn-secondary" style="min-width: 100px;">Cancel</button>
+            <button id="confirmBtnYes" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444; min-width: 100px;">Delete</button>
+        </div>
+    </div>
+</div>

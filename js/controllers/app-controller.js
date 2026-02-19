@@ -18,12 +18,19 @@ class AppController {
 
     async init() {
         try {
-            // 1. Initialize EmailJS
+            // 1. Restore saved theme before rendering anything
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                const icon = document.querySelector('#themeToggle i');
+                if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
+            }
+
+            // 2. Initialize EmailJS
             if (typeof emailjs !== 'undefined') {
                 emailjs.init(AppConfig.emailjs.publicKey);
             }
 
-            // 2. Load HTML templates dynamically
+            // 3. Load HTML templates dynamically
             await TemplateLoader.loadAll();
 
             // 3. Re-bind view elements to the newly loaded HTML
@@ -137,6 +144,49 @@ class AppController {
                 e.target.classList.toggle('active');
             });
         });
+
+        // --- Theme Toggle ---
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const icon = document.querySelector('#themeToggle i');
+            if (icon) {
+                icon.classList.toggle('fa-moon', !isDark);
+                icon.classList.toggle('fa-sun', isDark);
+            }
+        });
+
+        // --- Settings Events ---
+        document.getElementById('addCategoryForm')?.addEventListener('submit', (e) => this.handleAddCategory(e));
+        document.getElementById('resetAllDataBtn')?.addEventListener('click', () => this.handleResetAllData());
+        document.getElementById('exportDataBtn')?.addEventListener('click', () => this.handleExportData());
+        document.getElementById('importDataBtn')?.addEventListener('click', () => {
+            document.getElementById('importDataInput')?.click();
+        });
+        document.getElementById('importDataInput')?.addEventListener('change', (e) => this.handleImportData(e));
+
+        // --- Rewards Events ---
+        document.getElementById('addNewRewardBtn')?.addEventListener('click', () => {
+            const modal = document.getElementById('rewardModal');
+            if (modal) modal.style.display = 'flex';
+        });
+        document.getElementById('rewardForm')?.addEventListener('submit', (e) => this.handleAddReward(e));
+        document.getElementById('closeRewardModal')?.addEventListener('click', () => {
+            const modal = document.getElementById('rewardModal');
+            if (modal) modal.style.display = 'none';
+        });
+
+        // --- Task Modal Events ---
+        const openTaskModal = () => {
+            const modal = document.getElementById('addTaskModal');
+            if (modal) modal.style.display = 'flex';
+        };
+        document.getElementById('quickAddBtn')?.addEventListener('click', openTaskModal);
+        document.getElementById('openTaskModalBtn')?.addEventListener('click', openTaskModal);
+        document.getElementById('closeTaskModal')?.addEventListener('click', () => {
+            const modal = document.getElementById('addTaskModal');
+            if (modal) modal.style.display = 'none';
+        });
     }
 
     async handleAuth() {
@@ -196,16 +246,22 @@ class AppController {
     async handleAddTask(e) {
         e.preventDefault();
         const taskData = {
-            name: document.getElementById(AppConfig.elements.taskNameId).value,
-            category: document.getElementById(AppConfig.elements.taskCategoryId).value,
-            points: Number(document.getElementById(AppConfig.elements.taskPointsId).value) || 10,
-            date: document.getElementById(AppConfig.elements.taskDateId).value || taskView.getLocalDateString(new Date()),
-            duration: Number(document.getElementById(AppConfig.elements.taskDurationId).value) || 0
+            name: document.getElementById('taskName').value,
+            category: document.getElementById('taskCategory').value,
+            points: Number(document.getElementById('taskPoints').value) || 10,
+            date: document.getElementById('taskDate').value || taskView.getLocalDateString(new Date()),
+            duration: Number(document.getElementById('taskDuration').value) || 0
         };
         await taskModel.addTask(taskData);
         await this.refreshData();
         e.target.reset();
+
+        // Close modal if open
+        const modal = document.getElementById('addTaskModal');
+        if (modal) modal.style.display = 'none';
+
         this.switchPage(AppConfig.elements.homePageId);
+        showToast("Task added successfully!", "success");
     }
 
     async handleSendEmailSummary() {
@@ -265,7 +321,8 @@ class AppController {
     }
 
     async handleDeleteTask(id) {
-        if (!confirm('Delete this task?')) return;
+        const ok = await this.showConfirm('Delete Task?', 'Are you sure you want to remove this task?');
+        if (!ok) return;
         const task = taskModel.tasks.find(t => t.id === id);
         if (task && task.completed) {
             rewardModel.userStats.points -= Number(task.points);
@@ -391,6 +448,12 @@ class AppController {
     handleAddTemplateTask(e) {
         e.preventDefault();
 
+        const nameInput = document.getElementById('templateTaskName');
+        if (!nameInput.value.trim()) {
+            showToast("Please enter a task name", "error");
+            return;
+        }
+
         // Get selected days
         const selectedDays = [];
         document.querySelectorAll('.day-btn.active').forEach(btn => {
@@ -464,6 +527,237 @@ class AppController {
     removeTemplateTask(index) {
         this.currentTemplateTasks.splice(index, 1);
         this.renderTemplateTasks();
+    }
+
+    async handleAddCategory(e) {
+        if (e) e.preventDefault();
+        const nameInput = document.getElementById('newCategoryName');
+        const colorInput = document.getElementById('newCategoryColor');
+
+        if (!nameInput || !colorInput) {
+            console.error("Category inputs not found!");
+            return;
+        }
+
+        const name = nameInput.value.trim();
+        const color = colorInput.value;
+
+        if (!name) {
+            showToast("Please enter a category name", "error");
+            return;
+        }
+
+        taskModel.categories.push({ name, color });
+        await taskModel.saveCategories(taskModel.categories);
+
+        // Ensure view is bound before rendering
+        if (!taskView.categoriesList) taskView.bindElements();
+        this.renderAll();
+        nameInput.value = '';
+        showToast(`Category "${name}" added!`, 'success');
+    }
+
+    toggleQuickCategoryMode(show) {
+        const selectGroup = document.getElementById('categorySelectGroup');
+        const createGroup = document.getElementById('categoryCreateGroup');
+        if (selectGroup && createGroup) {
+            selectGroup.style.display = show ? 'none' : 'flex';
+            createGroup.style.display = show ? 'flex' : 'none';
+        }
+        if (show) {
+            setTimeout(() => document.getElementById('quickCategoryName')?.focus(), 50);
+        }
+    }
+
+    async handleQuickAddCategory() {
+        const nameInput = document.getElementById('quickCategoryName');
+        const colorInput = document.getElementById('quickCategoryColor');
+        if (!nameInput || !colorInput) return;
+
+        const name = nameInput.value.trim();
+        const color = colorInput.value;
+
+        if (!name) {
+            showToast("Please enter a category name", "error");
+            return;
+        }
+
+        taskModel.categories.push({ name, color });
+        await taskModel.saveCategories(taskModel.categories);
+
+        // Ensure view is bound
+        if (!taskView.categoriesList) taskView.bindElements();
+        this.renderAll();
+
+        // Cleanup UI: Switch back to select mode
+        this.toggleQuickCategoryMode(false);
+        nameInput.value = '';
+
+        // Auto-select
+        const select = document.getElementById('taskCategory');
+        if (select) select.value = name;
+
+        showToast(`Category "${name}" added!`, 'success');
+    }
+
+    showConfirm(title, message) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            if (!modal) return resolve(confirm(message)); // Fallback
+
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+
+            const yesBtn = document.getElementById('confirmBtnYes');
+            const noBtn = document.getElementById('confirmBtnCancel');
+
+            // Clone buttons to remove old listeners
+            const newYes = yesBtn.cloneNode(true);
+            const newNo = noBtn.cloneNode(true);
+            yesBtn.parentNode.replaceChild(newYes, yesBtn);
+            noBtn.parentNode.replaceChild(newNo, noBtn);
+
+            const cleanup = () => {
+                modal.style.display = 'none';
+            };
+
+            newYes.onclick = () => {
+                cleanup();
+                resolve(true);
+            };
+
+            newNo.onclick = () => {
+                cleanup();
+                resolve(false);
+            };
+
+            modal.style.display = 'flex';
+        });
+    }
+
+    async handleDeleteCategory(index) {
+        const ok = await this.showConfirm('Delete Category?', 'Tasks in this category will lose their tag.');
+        if (!ok) return;
+        taskModel.categories.splice(index, 1);
+        await taskModel.saveCategories(taskModel.categories);
+        this.renderAll();
+    }
+
+    async handleAddReward(e) {
+        e.preventDefault();
+        const reward = {
+            name: document.getElementById('rewardName').value.trim(),
+            description: document.getElementById('rewardDescription').value.trim(),
+            points: Number(document.getElementById('rewardPoints').value) || 100,
+            icon: document.getElementById('rewardIcon').value,
+            redeemCount: 0
+        };
+        if (!reward.name) return;
+        rewardModel.rewards.push(reward);
+        await rewardModel.saveRewards(rewardModel.rewards);
+        rewardView.renderRewards(rewardModel.rewards, rewardModel.userStats.points);
+        const modal = document.getElementById('rewardModal');
+        if (modal) modal.style.display = 'none';
+        e.target.reset();
+        showToast(`Reward "${reward.name}" created!`, 'success');
+    }
+
+    async handleDeleteReward(index) {
+        const ok = await this.showConfirm('Delete Reward?', 'This reward will be removed permanently.');
+        if (!ok) return;
+        rewardModel.rewards.splice(index, 1);
+        await rewardModel.saveRewards(rewardModel.rewards);
+        rewardView.renderRewards(rewardModel.rewards, rewardModel.userStats.points);
+    }
+
+    async handleRedeemReward(index) {
+        const reward = rewardModel.rewards[index];
+        if (!reward) return;
+        if (rewardModel.userStats.points < reward.points) {
+            showToast('Not enough points to redeem this reward!', 'error');
+            return;
+        }
+        const ok = await rewardModel.redeemReward(index);
+        if (ok) {
+            rewardView.renderRewards(rewardModel.rewards, rewardModel.userStats.points);
+            rewardView.updateStats(rewardModel.userStats.points);
+            showToast(`"${reward.name}" redeemed! 🎉`, 'success');
+        }
+    }
+
+    async handleResetAllData() {
+        const first = await this.showConfirm('Reset All Data?', '⚠️ This will permanently delete ALL your tasks, points, and rewards.');
+        if (!first) return;
+
+        const second = await this.showConfirm('Are you absolutely sure?', 'This action cannot be undone.');
+        if (!second) return;
+
+        try {
+            // Delete every task document
+            const deletes = taskModel.tasks.map(t => taskModel.deleteTask(t.id));
+            await Promise.all(deletes);
+            taskModel.tasks = [];
+
+            // Reset stats and rewards on the user doc
+            rewardModel.userStats = { points: 0, completedCount: 0 };
+            rewardModel.rewards = [];
+            await rewardModel.saveUserStats(rewardModel.userStats);
+            await rewardModel.saveRewards([]);
+
+            this.renderAll();
+            showToast('All data deleted.', 'success');
+        } catch (err) {
+            console.error('Reset failed:', err);
+            showToast('Failed to delete data. Try again.', 'error');
+        }
+    }
+
+    handleExportData() {
+        const data = {
+            tasks: taskModel.tasks,
+            categories: taskModel.categories,
+            rewards: rewardModel.rewards,
+            stats: rewardModel.userStats
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `taskflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Data exported!', 'success');
+    }
+
+    async handleImportData(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (data.categories) {
+                taskModel.categories = data.categories;
+                await taskModel.saveCategories(data.categories);
+            }
+            if (data.rewards) {
+                rewardModel.rewards = data.rewards;
+                await rewardModel.saveRewards(data.rewards);
+            }
+            if (data.stats) {
+                rewardModel.userStats = data.stats;
+                await rewardModel.saveUserStats(data.stats);
+            }
+            if (data.tasks && Array.isArray(data.tasks)) {
+                for (const t of data.tasks) {
+                    await taskModel.addTask(t);
+                }
+            }
+            await this.refreshData();
+            showToast('Data imported successfully!', 'success');
+        } catch (err) {
+            showToast('Import failed — invalid file.', 'error');
+        }
+        e.target.value = '';
     }
 
     async handleApplyTemplate() {

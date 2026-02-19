@@ -22,11 +22,19 @@
 
 <div class="panel">
     <div class="panel-header">
-        <h3>Today's Tasks</h3>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <h3>Today's Tasks</h3>
+            <button id="quickAddBtn" class="btn btn-primary btn-small" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
+                <i class="bi bi-plus-lg"></i> Add
+            </button>
+        </div>
         <div id="completionRate" style="font-size: 0.875rem; color: var(--accent); font-weight: 600;">0% complete</div>
     </div>
     <div id="tasksContainer" class="task-list">
-        <div class="no-tasks">All clear! Add some tasks to get started.</div>
+        <div class="empty-state">
+            <i class="bi bi-check-circle" style="font-size: 2.5rem; color: var(--border); margin-bottom: 0.5rem;"></i>
+            <p>All clear! Add some tasks to get started.</p>
+        </div>
     </div>
 </div>
 

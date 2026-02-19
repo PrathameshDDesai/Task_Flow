@@ -1,21 +1,10 @@
 <div class="panel">
-    <h3>Add New Task</h3>
-    <form id="taskForm" style="margin-top: 1.5rem;">
-        <input type="text" id="taskName" class="auth-input" placeholder="What needs to be done?" required>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <select id="taskCategory" class="auth-input" required>
-                <option value="">Category</option>
-            </select>
-            <input type="number" id="taskPoints" class="auth-input" placeholder="Points" value="10" min="1">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <input type="date" id="taskDate" class="auth-input">
-            <input type="number" id="taskDuration" class="auth-input" placeholder="Duration (min)" min="0">
-        </div>
-        <button type="submit" class="btn btn-primary btn-wide" style="width: 100%; justify-content: center; padding: 0.75rem;">
-            <i class="bi bi-plus-lg"></i> Add Task
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>My Tasks</h3>
+        <button id="openTaskModalBtn" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add New Task
         </button>
-    </form>
+    </div>
 </div>
 <div class="panel">
     <h3>All Planned Tasks</h3>
